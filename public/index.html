@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Capital Institute | Coaching & Academic Operations Workspace</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <!-- Login Screen -->
+  <div id="login" class="login-wrap">
+    <form id="login-form" class="login-card">
+      <div class="brand-mark">C</div>
+      <p class="eyebrow">CAPITAL INSTITUTE</p>
+      <h1>Excellence in Coaching & Admissions.</h1>
+      <p class="muted">Sign in to Capital Institute operations workspace.</p>
+      <label for="pw">Admin password</label>
+      <input id="pw" type="password" autocomplete="current-password" required placeholder="Enter password">
+      <button class="primary full">Open Institute Workspace <span>↗</span></button>
+      <p id="login-err" class="error"></p>
+      <small>Default password is configured in your local .env file.</small>
+    </form>
+  </div>
+
+  <!-- Main Application -->
+  <div id="app" class="app hidden">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">C</div>
+        <div>
+          <b>CAPITAL INSTITUTE</b>
+          <small>COACHING OS</small>
+        </div>
+      </div>
+      <div class="workspace-label">INSTITUTE DESK</div>
+      <nav id="nav">
+        <button data-view="dashboard" class="nav-item active">
+          ◫ <span>Overview</span>
+        </button>
+        <button data-view="leads" class="nav-item">
+          ◎ <span>Student Admissions</span><i id="nav-leads"></i>
+        </button>
+        <button data-view="campaigns" class="nav-item">
+          ↗ <span>Bulk Messenger</span>
+        </button>
+        <button data-view="inbox" class="nav-item">
+          ▤ <span>Message Audit</span>
+        </button>
+        <button data-view="followups" class="nav-item">
+          ◷ <span>Follow-up Rules</span>
+        </button>
+        <button data-view="tasks" class="nav-item">
+          ✓ <span>Faculty Tasks</span>
+        </button>
+        <button data-view="surveys" class="nav-item">
+          ▦ <span>Feedback & Forms</span>
+        </button>
+        <button data-view="research" class="nav-item">
+          ✳ <span>Academic Planner</span>
+        </button>
+        <button data-view="receptionist" class="nav-item">
+          ⌘ <span>AI Counselor</span>
+        </button>
+        <button data-view="settings" class="nav-item">
+          ⚙ <span>Settings</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="connection">
+          <span id="wa-dot" class="dot"></span>
+          <div>
+            <b id="wa-label">WhatsApp offline</b>
+            <small id="wa-sub">Connection not started</small>
+          </div>
+        </div>
+        <button id="logout" class="logout">↪ Sign out</button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow" id="crumb">INSTITUTE / OVERVIEW</p>
+          <h2 id="page-title">Overview</h2>
+        </div>
+        <div class="top-actions">
+          <span class="live-pill"><span></span> CAPITAL INSTITUTE WORKSPACE</span>
+          <div class="avatar" title="Capital Institute Admin">CI</div>
+        </div>
+      </header>
+
+      <section id="view" class="view"></section>
+
+      <footer>
+        CAPITAL INSTITUTE <span>•</span> Coaching Operations Workspace · Keep student records secure
+      </footer>
+    </main>
+  </div>
+
+  <div id="toasts" class="toasts"></div>
+  <script src="/app.js"></script>
+</body>
+</html>

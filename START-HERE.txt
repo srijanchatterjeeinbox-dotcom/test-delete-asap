@@ -1,0 +1,12 @@
+CAPITAL INSTITUTE DASHBOARD — START HERE
+
+1) Open the project folder in File Explorer or terminal.
+2) Run:
+   npm install
+   copy .env.example .env
+   notepad .env
+3) Change ADMIN_PASSWORD to your secure admin password and save.
+4) Run: npm start
+5) Open: http://localhost:3000
+
+AI and WhatsApp are optional integrations. Read README.md for setup and safety notes.
