@@ -6,7 +6,7 @@ const crypto = require('crypto');
 const XLSX = require('xlsx');
 const db = require('./src/db');
 const wa = require('./src/whatsapp');
-const { answer, answerForWhatsApp } = require('./src/ai');
+const { answer, answerForWhatsApp, getContextWindow } = require('./src/ai');
 
 const app = express();
 app.disable('x-powered-by');
@@ -56,7 +56,7 @@ app.use('/api', auth);
 app.get('/api/health', (_req, res) => {
   res.json({
     ok: true,
-    app: 'Capital Institute',
+    app: 'Dr. Pandey Healthcare Clinic',
     mode: process.env.GEMINI_API_KEY || process.env.ANTHROPIC_API_KEY
       ? 'AI configured'
       : 'demo mode'
@@ -88,7 +88,7 @@ app.get('/api/overview', (_req, res) => {
     leads: count('SELECT COUNT(*) n FROM leads'),
     newLeads: count("SELECT COUNT(*) n FROM leads WHERE status='New'"),
     campaigns: count('SELECT COUNT(*) n FROM campaigns'),
-    messages: count("SELECT COUNT(*) n FROM messages WHERE direction='outbound'"),
+    messages: count('SELECT COUNT(*) n FROM messages'),
     responses: count('SELECT COUNT(*) n FROM survey_responses'),
     tasks: count("SELECT COUNT(*) n FROM tasks WHERE status!='Done'"),
     wa: wa.status()
@@ -105,6 +105,17 @@ app.get('/api/leads', (req, res) => {
       'SELECT * FROM leads WHERE name LIKE ? OR phone LIKE ? OR company LIKE ? ORDER BY id DESC LIMIT 500'
     ).all(q, q, q)
   );
+});
+
+app.get('/api/leads/:id', (req, res) => {
+  const lead = db.prepare('SELECT * FROM leads WHERE id = ?').get(req.params.id);
+  if (!lead) return res.status(404).json({ error: 'Patient record not found' });
+  res.json(lead);
+});
+
+app.post('/api/leads/clear-all', (_req, res) => {
+  db.clearCrmRecords();
+  res.json({ ok: true, message: 'All patient records cleared successfully.' });
 });
 
 app.post('/api/leads', (req, res) => {
@@ -435,7 +446,7 @@ app.get('/s/:id', (req, res) => {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(survey.title)} | Capital Institute</title>
+<title>${esc(survey.title)} | Dental Clinic</title>
 <style>
 body{font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0f172a;margin:0;padding:32px 16px;color:#1e293b;min-height:100vh;display:flex;align-items:center;justify-content:center}
 .wrapper{width:100%;max-width:660px}
@@ -461,18 +472,18 @@ button:disabled{background:#94a3b8;cursor:not-allowed;box-shadow:none}
 <body>
 <div class="wrapper">
   <div class="header">
-    <div class="badge"><span class="brand-icon">C</span> Capital Institute • Official Portal</div>
+    <div class="badge"><span class="brand-icon">🦷</span> Dental Clinic • Patient Portal</div>
   </div>
   <form class="card" id="f">
     <h1>${esc(survey.title)}</h1>
     <p class="desc">${esc(survey.description || '')}</p>
-    <label>Student / Respondent Name (optional)</label>
-    <input name="respondent" maxlength="120" placeholder="e.g. Aryan Sharma">
+    <label>Patient Name (optional)</label>
+    <input name="respondent" maxlength="120" placeholder="e.g. Rohan Mehta">
     <div id="qs"></div>
-    <button type="submit">Submit to Capital Institute</button>
+    <button type="submit">Submit Feedback to Dental Clinic</button>
     <p id="msg"></p>
   </form>
-  <div class="footer">Capital Institute · Academic Operations & Student Success</div>
+  <div class="footer">Dental Clinic · Patient Care & Oral Health Excellence</div>
 </div>
 <script>
 const qs=${questions};
@@ -612,6 +623,10 @@ app.post('/api/whatsapp/reset', async (_req, res) => {
   }
 });
 
+app.get('/api/whatsapp/context-window', (_req, res) => {
+  res.json(getContextWindow());
+});
+
 app.get('/api/whatsapp/chatbot', (_req, res) => {
   res.json(wa.getChatbotConfig());
 });
@@ -626,13 +641,24 @@ app.post('/api/whatsapp/chatbot', (req, res) => {
 
 app.post('/api/whatsapp/chatbot/test', async (req, res) => {
   try {
-    const prompt = String(req.body?.prompt || 'Hello, what courses and batch timings do you offer?').trim();
+    const prompt = String(req.body?.prompt || 'Namaste, what are your clinic timings and where are you located?').trim();
+    const customInstruction = db.getSetting('chatbot_prompt', '');
+    const testContext = req.body?.context || 'Patient: Walk-in / Simulator Patient. Health Concern: Ayurvedic & Homeopathic Consultation. Status: New Patient. Reference: https://drpandeyhealthcare.com/.';
+    const conversationHistory = Array.isArray(req.body?.history)
+      ? req.body.history
+      : (Array.isArray(req.body?.conversationHistory) ? req.body.conversationHistory : []);
+
     const reply = await answerForWhatsApp(
       prompt,
-      'Test Admin Inquirer',
-      db.getSetting('chatbot_prompt', '')
+      testContext,
+      customInstruction,
+      conversationHistory
     );
-    res.json({ reply });
+    res.json({
+      reply,
+      answer: reply,
+      contextWindowRef: 'https://drpandeyhealthcare.com/'
+    });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -685,7 +711,7 @@ app.post('/api/bulk/send', async (req, res) => {
 
   let recipients = [];
 
-  if (mode === 'raw') {
+  if (mode === 'raw' || mode === 'numbers') {
     const rawList = String(b.rawNumbers || '')
       .split(/[\n,;]+/)
       .map(s => s.trim())
@@ -693,15 +719,15 @@ app.post('/api/bulk/send', async (req, res) => {
 
     recipients = rawList.map(ph => ({
       id: null,
-      name: 'Student',
+      name: 'Patient',
       phone: ph,
-      company: 'Capital Institute',
-      segment: 'General Broadcast'
+      company: 'Dr. Pandey Healthcare Clinic',
+      segment: 'Direct Broadcast'
     }));
   } else if (mode === 'selected') {
     const ids = Array.isArray(b.leadIds) ? b.leadIds : [];
     if (!ids.length) {
-      return res.status(400).json({ error: 'Please select at least one student.' });
+      return res.status(400).json({ error: 'Please select at least one patient record.' });
     }
     const placeholders = ids.map(() => '?').join(',');
     let sql = `SELECT * FROM leads WHERE id IN (${placeholders}) AND phone != ''`;
@@ -742,11 +768,11 @@ app.post('/api/bulk/send', async (req, res) => {
   for (let i = 0; i < recipients.length; i++) {
     const r = recipients[i];
     const personalized = messageTemplate
-      .replace(/{name}/gi, r.name || 'Student')
-      .replace(/{course}/gi, r.company || 'Coaching Program')
-      .replace(/{batch}/gi, r.segment || 'Upcoming Batch')
-      .replace(/{segment}/gi, r.segment || 'Upcoming Batch')
-      .replace(/{phone}/gi, r.phone || '');
+      .replace(/\{\{?name\}\}?/gi, r.name || 'Patient')
+      .replace(/\{\{?(?:company|treatment|service|concern)\}\}?/gi, r.company || 'Healthcare Service')
+      .replace(/\{\{?(?:doctor|specialist|physician)\}\}?/gi, 'Dr. A. K. Pandey')
+      .replace(/\{\{?(?:segment|branch)\}\}?/gi, r.segment || 'Greater Noida')
+      .replace(/\{\{?(?:phone|mobile)\}\}?/gi, r.phone || '');
 
     try {
       await wa.sendMessage(r.phone, personalized);
@@ -778,21 +804,34 @@ app.post('/api/bulk/send', async (req, res) => {
 
 /* AI */
 
-app.post('/api/ai/answer', async (req, res) => {
+app.post(['/api/ai/chat', '/api/ai/answer'], async (req, res) => {
   try {
-    const prompt = String(req.body?.prompt || '').trim();
+    const prompt = String(req.body?.prompt || req.body?.message || '').trim();
 
-    if (!prompt) return res.status(400).json({ error: 'Enter a prompt' });
+    if (!prompt) return res.status(400).json({ error: 'Please enter a message or health question.' });
+
+    const customInstruction = db.getSetting('chatbot_prompt', '');
+    const context = req.body?.context || 'Patient: Walk-in / Inquiring Patient. Clinical Concern: Ayurvedic & Homeopathic Consultation at Dr. Pandey Healthcare Clinic (Reference: https://drpandeyhealthcare.com/).';
+    const conversationHistory = Array.isArray(req.body?.history)
+      ? req.body.history
+      : (Array.isArray(req.body?.conversationHistory) ? req.body.conversationHistory : []);
+
+    const reply = await answerForWhatsApp(
+      prompt.slice(0, 5000),
+      context,
+      customInstruction,
+      conversationHistory
+    );
 
     res.json({
-      answer: await answer(
-        prompt.slice(0, 5000),
-        String(req.body?.context || '').slice(0, 1500)
-      )
+      reply,
+      answer: reply,
+      ok: true,
+      contextWindowRef: 'https://drpandeyhealthcare.com/'
     });
   } catch (e) {
-    console.error('AI request failed:', e.message);
-    res.status(502).json({ error: 'AI request failed. Check src/ai.js and your API configuration.' });
+    console.error('AI chat failed:', e.message);
+    res.status(502).json({ error: 'AI request failed: ' + e.message });
   }
 });
 
@@ -845,10 +884,10 @@ function esc(value) {
   })[char]);
 }
 
-const port = Number(process.env.PORT) || 3000;
+const port = Number(process.env.PORT) || 3001;
 
 app.listen(port, () => {
-  console.log(`Capital Institute dashboard: http://localhost:${port}`);
+  console.log(`Dr. Pandey Healthcare Clinic dashboard: http://localhost:${port}`);
   console.log('AI mode:', process.env.GEMINI_API_KEY || process.env.ANTHROPIC_API_KEY
     ? 'configured (live AI enabled)'
     : 'demo mode');

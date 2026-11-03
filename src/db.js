@@ -5,7 +5,8 @@ const path = require('path');
 const dir = path.join(__dirname, '..', 'data');
 fs.mkdirSync(dir, { recursive: true });
 
-const db = new Database(path.join(dir, 'capital.db'));
+// Dr. Pandey Healthcare Clinic primary SQLite database
+const db = new Database(path.join(dir, 'drpandey.db'));
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
 
@@ -103,89 +104,118 @@ CREATE TABLE IF NOT EXISTS settings (
 );
 `);
 
-// Seed initial coaching institute records if empty
+// Seed initial records for Dr. Pandey Healthcare Clinic on initial setup
 try {
-  const leadCount = db.prepare('SELECT COUNT(*) n FROM leads').get().n;
-  if (leadCount === 0) {
+  const initialized = db.prepare("SELECT value FROM settings WHERE key = 'db_initialized'").get();
+  if (!initialized) {
+    db.prepare("INSERT INTO settings (key, value) VALUES ('db_initialized', '1')").run();
+    const leadCount = db.prepare('SELECT COUNT(*) n FROM leads').get().n;
+    if (leadCount === 0) {
     const insertLead = db.prepare(`
       INSERT INTO leads (name, phone, email, company, source, status, segment, notes, consent, opted_out)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     insertLead.run(
-      'Aryan Sharma',
+      'Rahul Kumar',
       '+91 98112 34567',
-      'aryan.sharma@gmail.com',
-      'JEE Advanced 2026',
+      'rahul.kumar@gmail.com',
+      'Allergic Rhinitis & Frequent Sneezing',
       'Website Inquiry',
-      'Qualified',
-      'JEE Batch A',
-      'Scored 94% in Class 10 Boards. Interested in weekend intensive batch. Father is an engineer.',
+      'Under Treatment',
+      'Homeopathy Patients',
+      'Severe all-day sneezing & chronic allergic rhinitis. Dr. Pandey prescribed targeted homeopathic drops. Marked improvement within 48h; sneezing stopped. On maintenance dose.',
       1,
       0
     );
 
     insertLead.run(
-      'Priya Patel',
+      'Abhijeet Anand',
       '+91 98223 45678',
-      'priya.patel@outlook.com',
-      'NEET Medical 2025',
-      'Walk-in',
-      'Demo Scheduled',
-      'NEET Dropper Batch',
-      'Attended demo physics lecture on optics. Counselor recommended Target 650+ program.',
+      'abhijeet.anand@outlook.com',
+      'Chronic Joint Pain & Arthritis',
+      'Referral',
+      'Appointment Scheduled',
+      'Joint Care & Arthritis',
+      'Bilateral knee osteoarthritis. Seeking authentic non-surgical Ayurvedic treatment and Janu Basti. Scheduled for Nadi Parikshan at Delta 1 clinic on Friday 11:30 AM.',
       1,
       0
     );
 
     insertLead.run(
-      'Rohan Verma',
+      'Priya Sharma',
       '+91 98334 56789',
-      'rohan.v@gmail.com',
-      'Class 10 Board Foundation',
-      'School Seminar',
-      'Enrolled',
-      'Foundation Batch',
-      'Enrolled for Math & Science combo. Fee installment 1 received. Orientation this Saturday.',
+      'priya.sharma@gmail.com',
+      'PCOS & Infertility (Uttar Basti)',
+      'Instagram',
+      'Consultation Done',
+      'Gynecology & Fertility',
+      'Diagnosed with PCOS and irregular cycles for 3 years. Consulted Dr. Pandey for authentic Uttar Basti therapy. Treatment roadmap explained; scheduled for cycle-day 6 session at Omicron 3 branch.',
       1,
       0
     );
 
     insertLead.run(
-      'Ananya Sen',
+      'Dileep Kushwah',
       '+91 98445 67890',
-      'ananya.sen@gmail.com',
-      'CUET General + Commerce',
+      'dileep.k@gmail.com',
+      'Chronic Gastro & IBS Disorder',
+      'Walk-in',
+      'In Treatment',
+      'Gastro & Digestive Health',
+      'Recurrent hyperacidity, bloating, and irregular bowel habits for 18 months. Placed on customized Ayurvedic herbs, Nadi-based diet chart, and Takra Dhara. Patient reports 70% relief.',
+      1,
+      0
+    );
+
+    insertLead.run(
+      'Rajendra Prasad',
+      '+91 98556 78901',
+      'rajendra.p@yahoo.com',
+      'Type 2 Diabetes Reversal Regimen',
+      'Google Search',
+      'Consultation Done',
+      'Diabetes & Metabolic Health',
+      'HbA1c 8.2%. Interested in herbal Ayurvedic blood sugar regulation and lifestyle modification. Completed initial constitution assessment with Dr. Pandey at Delta 1 branch.',
+      1,
+      0
+    );
+
+    insertLead.run(
+      'Maya Yadav',
+      '+91 98667 89012',
+      'maya.yadav@gmail.com',
+      'Chronic Migraine & Tension Headaches',
+      'Walk-in',
+      'Under Treatment',
+      'Neurological & Headaches',
+      'Unilateral throbbing headaches with photophobia for 4 years. Homeopathic regimen + Shirodhara therapy initiated. Headache frequency reduced from 4 times/week to once a fortnight.',
+      1,
+      0
+    );
+
+    insertLead.run(
+      'Prasanna Bera',
+      '+91 98778 90123',
+      'prasanna.bera@gmail.com',
+      'Chronic Eczema & Skin Allergy',
       'Referral',
       'New Inquiry',
-      'CUET 2026',
-      'Referred by batch student Ritu. Inquired about weekend mock test series.',
+      'Dermatology & Skin Care',
+      'Dry, itchy erythematous patches on both forearms and legs. Steroid creams caused recurrence. Reached out for natural side-effect-free homeopathic cure.',
       1,
       0
     );
 
     insertLead.run(
-      'Kabir Mehta',
-      '+91 98556 78901',
-      'kabir.m@yahoo.com',
-      'NDA & Defense Exam Prep',
-      'Social Media',
-      'Contacted',
-      'NDA Batch',
-      'Physical fitness clear; requires mathematics booster sessions.',
-      0,
-      0
-    );
-
-    insertLead.run(
-      'Sneha Roy',
-      '+91 98667 89012',
-      'sneha.roy@gmail.com',
-      'JEE Main Target 2025',
-      'Walk-in',
-      'Enrolled',
-      'JEE Batch A',
-      'Awarded 20% scholarship via Capital Admission Test (CAST).',
+      'Shiv Shant Kumar',
+      '+91 98889 01234',
+      'shiv.shant@gmail.com',
+      'Nadi Parikshan & Authentic Panchkarma Detox',
+      'Website Inquiry',
+      'New Inquiry',
+      'Panchkarma Wellness',
+      'Working professional in Knowledge Park II seeking pulse diagnosis, full bio-purification detox (Virechana & Nasya), and stress management at Omicron 3 branch.',
       1,
       0
     );
@@ -196,16 +226,23 @@ try {
     `);
 
     insertCampaign.run(
-      'Scholarship Admission Test (CAST 2026) Alert',
-      'Dear Student/Parent, Capital Institute\'s Annual Scholarship Admission Test (CAST) is scheduled for this Sunday at 10 AM. Up to 100% tuition waiver for top 50 rankers. Register now: capitalinstitute.in/cast | Capital Institute Admissions',
+      'Free Ayurvedic Nadi Parikshan & Health Camp – Greater Noida',
+      'Namaste! Dr. Pandey’s Advanced Multi-Speciality Clinic invites you to a FREE Ayurvedic Nadi Parikshan (Pulse Diagnosis) Camp this Sunday (10 AM – 2 PM) at our Delta 1 Clinic (F-615, Greater Noida). Get authentic Prakriti analysis, chronic disease consultation, and personalized dietary guidance with Dr. A.K. Pandey (16+ yrs exp, Ex-Patanjali). Book your free slot: Call/WhatsApp +91 9990947134 | https://drpandeyhealthcare.in',
       '',
       'Completed'
     );
 
     insertCampaign.run(
-      'New NEET 2026 Intensive Batch Commencement',
-      'Hello! New weekday intensive batch for NEET Medical 2026 starts this Monday. Limited seats to ensure personalized faculty attention. Reply DEMO for free class pass. Capital Institute',
-      'NEET Dropper Batch',
+      'Seasonal Panchkarma Rejuvenation & Detox Drive',
+      'Revitalize your body and balance your Doshas! Avail our authentic Panchkarma therapies (Nasya, Shirodhara, Basti, Janu Basti) tailored by Dr. A. K. Pandey. Cleanse deep-seated toxins and relieve chronic pain naturally. Slots available at both Delta 1 & Omicron 3 branches. Reply DETOX to book your consultation or call +91 9990947134. 🌿',
+      'Panchkarma Wellness',
+      'Draft'
+    );
+
+    insertCampaign.run(
+      'Natural Diabetes & Joint Pain Awareness Follow-up',
+      'Dear Patient, chronic joint pain and blood sugar fluctuations need root-cause care, not temporary suppression. Dr. Pandey Healthcare Clinic offers evidence-based Ayurvedic & Homeopathic solutions with zero side effects. Reply CONSULT to speak with our healthcare coordinator today. 📞 +91 9990947134',
+      'Joint Care & Arthritis',
       'Draft'
     );
 
@@ -215,35 +252,43 @@ try {
     `);
 
     insertTask.run(
-      "Call Priya Patel's parents regarding NEET batch schedule & seat confirmation",
-      '2026-10-15',
+      "Prepare medicated herbal oils for Priya Sharma's Uttar Basti session at Omicron 3 branch",
+      '2026-10-19',
       'High',
+      'Open',
+      3
+    );
+
+    insertTask.run(
+      "Review Abhijeet Anand's knee X-ray & finalize Janu Basti schedule with Dr. Pandey",
+      '2026-10-20',
+      'Normal',
       'Open',
       2
     );
 
     insertTask.run(
-      "Dispatch JEE Advanced Mathematics Module 2 to Batch A students",
-      '2026-10-16',
+      "Follow up with Rahul Kumar on allergic rhinitis relief after 2nd week homeopathic drops",
+      '2026-10-18',
       'Normal',
       'Open',
       1
     );
 
     insertTask.run(
-      "Conduct Sunday All-India Mock Test 4 & upload rank analysis",
-      '2026-10-18',
+      "Organize Sunday Nadi Parikshan Camp logistics at Delta 1 branch (F-615)",
+      '2026-10-21',
       'High',
       'Open',
       null
     );
 
     insertTask.run(
-      "Verify scholarship discount coupon for Sneha Roy",
-      '2026-10-14',
+      "Review HbA1c lab report and update Ayurvedic diet chart for Rajendra Prasad",
+      '2026-10-17',
       'Normal',
       'Done',
-      6
+      5
     );
 
     const insertFollowup = db.prepare(`
@@ -252,26 +297,34 @@ try {
     `);
 
     insertFollowup.run(
-      'Post-Inquiry Admission Counseling Call',
+      'Post-Inquiry Appointment Booking Coordinator Call',
       'New Inquiry',
       24,
-      'Hi {{name}}, thank you for inquiring at Capital Institute. Our senior academic counselor is available today to discuss your target exam roadmap. Would 4 PM or 6 PM work for a quick call?',
+      'Namaste {{name}}, thank you for contacting Dr. Pandey’s Advanced Multi-Speciality Clinic. Our patient coordinator is available to assist you with booking your consultation with Dr. A. K. Pandey (Ayurveda & Homeopathy). Which branch is convenient for you — F-615 Delta 1 or D-401 Omicron 3? Call/WhatsApp +91 9990947134.',
       1
     );
 
     insertFollowup.run(
-      'Post-Demo Class Feedback & Enrollment',
-      'Contacted',
+      'Post-Consultation Medicine & Diet Adherence Check',
+      'Under Treatment',
       48,
-      'Hi {{name}}, how was your demo class experience at Capital Institute? We are offering an early enrollment fee benefit this week. Let us know if you have any questions!',
+      'Namaste {{name}}, we hope you have started your prescribed treatment from Dr. Pandey’s Clinic. Please follow the dietary and lifestyle advice (Pathya-Apathya) shared during your consultation. If you have any questions or require guidance, feel free to text us here or call +91 9990947134. Wishing you speedy healing! 🌿',
       1
     );
 
     insertFollowup.run(
-      'Mock Test Series Diagnostic Link',
-      'Qualified',
-      72,
-      'Hi {{name}}, your test series access has been generated. Login to Capital Student Portal with your phone number to attempt your diagnostic exam.',
+      'Panchkarma Session Follow-up & Rest Guidance',
+      'Under Treatment',
+      24,
+      'Dear {{name}}, after your Panchkarma therapy session today, please remember to drink warm water, avoid cold/heavy food, and take adequate rest. Let us know how you feel. Dr. Pandey Healthcare Clinic 🌿',
+      1
+    );
+
+    insertFollowup.run(
+      '1-Month Chronic Disease Follow-up & Progress Review',
+      'Under Treatment',
+      720,
+      'Namaste {{name}}, it has been 4 weeks since your last consultation with Dr. A.K. Pandey. A timely follow-up ensures your treatment doses are adjusted to your healing progress. Book your follow-up slot at Delta 1 or Omicron 3: Call +91 9990947134.',
       0
     );
 
@@ -281,25 +334,25 @@ try {
     `);
 
     const s1 = insertSurvey.run(
-      'Capital Institute - Faculty Teaching & Course Feedback',
-      'Your honest feedback helps our educators improve batch delivery and doubt-clearing sessions.',
+      'Dr. Pandey Healthcare Clinic – Patient Experience & Healing Feedback',
+      'Your valuable feedback helps Dr. Pandey and our clinical team enhance care quality, clinic environment, and holistic patient outcomes.',
       JSON.stringify([
-        'How clearly did the faculty explain complex concepts in recent lectures?',
-        'Are the study materials and daily practice problem (DPP) sheets helpful?',
-        'How satisfied are you with the doubt-clearing sessions?',
-        'What additional revision topics would you like to request?'
+        'How thoroughly did Dr. A. K. Pandey explain your diagnosis (Nadi Parikshan / Constitutional assessment) and treatment plan?',
+        'How would you rate the effectiveness and symptom relief from your prescribed treatment?',
+        'How satisfied were you with the clinic cleanliness, staff courtesy, and waiting time at our branch (Delta 1 / Omicron 3)?',
+        'How likely are you to recommend Dr. Pandey’s Advanced Multi-Speciality Clinic to family and friends?'
       ]),
       1
     );
 
     insertSurvey.run(
-      'Student Admission & Counseling Questionnaire',
-      'Help our academic counselors understand your target career, current syllabus coverage, and learning pace.',
+      'New Patient Constitutional (Prakriti) & Health Intake Questionnaire',
+      'Help Dr. A.K. Pandey understand your health history, digestive habits, sleep patterns, and primary complaints before your consultation.',
       JSON.stringify([
-        'Which competitive exam or board are you aiming for?',
-        'Which subject do you find most challenging (Physics, Chemistry, Math, Biology)?',
-        'Do you prefer weekday morning batches or weekend intensive batches?',
-        'What is your target score or percentile goal?'
+        'What is your primary health concern, and how long have you been experiencing it?',
+        'Which clinic location is most convenient for you? (Branch 1: Delta 1 | Branch 2: Omicron 3 | Online Consultation)',
+        'How would you describe your digestion, appetite, and bowel movements (Regular, Sluggish, Gas/Acidity, Constipated)?',
+        'Do you have any existing diagnosed conditions (Diabetes, Hypertension, Thyroid, PCOS, Arthritis) or current medications?'
       ]),
       1
     );
@@ -311,12 +364,12 @@ try {
 
     insertResponse.run(
       s1.lastInsertRowid,
-      'Aryan Sharma',
+      'Rahul Kumar',
       JSON.stringify({
-        'How clearly did the faculty explain complex concepts in recent lectures?': 'Excellent. The physics mechanics derivation was very clear.',
-        'Are the study materials and daily practice problem (DPP) sheets helpful?': 'Yes, especially level 2 problems.',
-        'How satisfied are you with the doubt-clearing sessions?': 'Very satisfied, faculty stayed after class to resolve questions.',
-        'What additional revision topics would you like to request?': 'More numerical problems on Rotational Motion.'
+        'How thoroughly did Dr. A. K. Pandey explain your diagnosis (Nadi Parikshan / Constitutional assessment) and treatment plan?': 'Excellent. Dr. Pandey explained the allergic root cause in depth and was very reassuring.',
+        'How would you rate the effectiveness and symptom relief from your prescribed treatment?': 'Outstanding. My continuous daily sneezing stopped on day two with minimal homeopathic medicine.',
+        'How satisfied were you with the clinic cleanliness, staff courtesy, and waiting time at our branch (Delta 1 / Omicron 3)?': 'Very clean, comfortable environment, and welcoming staff at Delta 1 branch.',
+        'How likely are you to recommend Dr. Pandey’s Advanced Multi-Speciality Clinic to family and friends?': '10/10. Highly recommended for any chronic allergy or chronic health complaint.'
       })
     );
 
@@ -329,7 +382,7 @@ try {
       1,
       '+91 98112 34567',
       'outbound',
-      'Welcome to Capital Institute, Aryan! Your counseling session with Prof. Verma is scheduled for tomorrow at 4:30 PM.',
+      'Namaste Rahul ji, Greetings from Dr. Pandey’s Advanced Multi-Speciality Clinic! Your homeopathic follow-up consultation is scheduled for Friday at 4:30 PM at our Delta 1 Clinic (F-615). Please carry your medicine chart. Helpline: +91 9990947134.',
       'sent'
     );
 
@@ -337,7 +390,7 @@ try {
       2,
       '+91 98223 45678',
       'outbound',
-      'Hello Priya, your pass for the NEET Demo Lecture on Optics is confirmed for Wednesday at 11 AM at Capital Institute.',
+      'Namaste Abhijeet ji, your Nadi Parikshan and knee assessment appointment with Dr. A. K. Pandey is confirmed for Friday at 11:30 AM at our Delta 1 branch (F-615). Kindly avoid heavy meals 2 hours prior to pulse diagnosis. Helpline: +91 9990947134.',
       'sent'
     );
 
@@ -345,13 +398,24 @@ try {
       3,
       '+91 98334 56789',
       'outbound',
-      'Dear Parent, fee receipt for Rohan Verma (Class 10 Foundation Batch) has been issued. Welcome to Capital Institute!',
+      'Namaste Priya ji, your specialized Uttar Basti therapy session is scheduled for Saturday 11:00 AM at our Omicron 3 Clinic (D-401). Our female therapist and care team have prepared the session room. Dr. Pandey Healthcare Clinic.',
       'sent'
     );
+    }
   }
 } catch (err) {
-  console.error('Error seeding Capital Institute data:', err.message);
+  console.error('Error seeding Dr. Pandey Healthcare Clinic data:', err.message);
 }
+
+db.clearCrmRecords = function() {
+  db.exec(`
+    DELETE FROM messages;
+    DELETE FROM campaign_recipients;
+    DELETE FROM tasks;
+    DELETE FROM survey_responses;
+    DELETE FROM leads;
+  `);
+};
 
 db.getSetting = function(key, defaultValue = '') {
   try {

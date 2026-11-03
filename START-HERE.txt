@@ -1,12 +1,12 @@
-CAPITAL INSTITUTE DASHBOARD — START HERE
+DR. PANDEY HEALTHCARE CLINIC DASHBOARD — START HERE
+
+Dr. Pandey’s Advanced Multi-Speciality Clinic (Greater Noida)
+Ayurvedic Pulse Diagnosis (Nadi Parikshan) • Authentic Panchkarma • Personalized Homeopathy • AI WhatsApp Receptionist
 
 1) Open the project folder in File Explorer or terminal.
-2) Run:
-   npm install
-   copy .env.example .env
-   notepad .env
-3) Change ADMIN_PASSWORD to your secure admin password and save.
-4) Run: npm start
-5) Open: http://localhost:3000
+2) In .env, verify your ADMIN_PASSWORD and GEMINI_API_KEY.
+3) Run:
+   npm run dev
+4) Open: http://localhost:3000
 
-AI and WhatsApp are optional integrations. Read README.md for setup and safety notes.
+AI WhatsApp Receptionist with clinical triage questions and WhatsApp Baileys integration are built-in.
